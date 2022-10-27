@@ -14,26 +14,39 @@
 int main(int argc, char **argv)
 {
 
-  int sockfd, number_clients;
+  int number_clients, prot_sock, comm_sock, maxfdp1, nready;
+  fd_set rset;
 
-  sockfd = socket_creation(BASE_PORT, IP);
   number_clients = 0;
+  prot_sock = socket_creation(BASE_PORT, IP);
+  comm_sock = socket_creation(COMMUNICATION_PORT, IP);
+
+  // clear the descriptor set
+  FD_ZERO(&rset);
+  // get maxfd
+  maxfdp1 = max(prot_sock, comm_sock) + 1;
 
   while (1)
   {
-    printf("Waiting for connection ...\n");
-    three_way_handshake(sockfd, number_clients);
-    number_clients++;
-    int PID = fork();
-    if (PID == 0)
+    // set listenfd and udpfd in readset
+    FD_SET(prot_sock, &rset);
+    FD_SET(comm_sock, &rset);
+    printf("Waiting for connection...\n");
+
+    nready = select(maxfdp1, &rset, NULL, NULL, NULL);
+
+    // if tcp socket is readable then handle
+    // it by accepting the connection
+    if (FD_ISSET(prot_sock, &rset))
     {
-      printf("New client connected\n");
-      close(sockfd);
-      int new_port = BASE_PORT + number_clients;
-      int new_sockfd = socket_creation(new_port, IP);
-      exit(0);
+      three_way_handshake(prot_sock, number_clients);
+      number_clients++;
+    }
+    // if udp socket is readable receive the message.
+    if (FD_ISSET(comm_sock, &rset))
+    {
+      handle_hello(comm_sock);
     }
   }
-
   return 0;
 }

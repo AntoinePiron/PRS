@@ -58,7 +58,7 @@ void three_way_handshake(int sockfd, int client_num)
     }
 
     bzero(buffer, BUFFER_SIZE);
-    snprintf(buffer, 13, "SYN ACK_%d", BASE_PORT + client_num + 1);
+    snprintf(buffer, 13, "SYN ACK_%d", COMMUNICATION_PORT);
     sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
     printf("[+]Data send: %s\n", buffer);
 
@@ -80,4 +80,21 @@ int max(int a, int b)
         return a;
     else
         return b;
+}
+
+void handle_hello(int sockfd)
+{
+    char buffer[BUFFER_SIZE];
+    socklen_t addr_size;
+    struct sockaddr_in client_addr;
+
+    bzero(buffer, BUFFER_SIZE);
+    addr_size = sizeof(client_addr);
+    recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+    printf("[+]Data recv: %s\n", buffer);
+    if (strncmp(buffer, "HELLO", 5) != 0)
+    {
+        printf("HELLO not received \n");
+        exit(EXIT_FAILURE);
+    }
 }

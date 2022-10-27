@@ -1,3 +1,4 @@
 #define BUFFER_SIZE 1024
-#define BASE_PORT 1234
+#define BASE_PORT 5000
+#define COMMUNICATION_PORT 6000
 #define IP "127.0.0.1"

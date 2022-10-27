@@ -42,3 +42,14 @@ int three_way_handshake(int sockfd, struct sockaddr_in addr)
 
     return new_port;
 }
+
+void send_hello(int sockfd, struct sockaddr_in addr)
+{
+    char buffer[BUFFER_SIZE];
+    socklen_t addr_size;
+
+    bzero(buffer, BUFFER_SIZE);
+    strcpy(buffer, "HELLO");
+    sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, sizeof(addr));
+    printf("[+]Data send: %s\n", buffer);
+}
