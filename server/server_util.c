@@ -35,6 +35,8 @@ int socket_creation(int port, char *adress)
         perror("[-]bind error");
         exit(1);
     }
+    int valid = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &valid, sizeof(int));
     return sockfd;
 }
 
@@ -69,5 +71,13 @@ void three_way_handshake(int sockfd, int client_num)
         printf("ACK not received \n");
         exit(EXIT_FAILURE);
     }
-    printf("*** end of three way handshake *** \n\n");
+    printf("\n*** end of three way handshake *** \n\n");
+}
+
+int max(int a, int b)
+{
+    if (a > b)
+        return a;
+    else
+        return b;
 }
