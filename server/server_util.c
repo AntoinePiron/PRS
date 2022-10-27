@@ -38,7 +38,7 @@ int socket_creation(int port, char *adress)
     return sockfd;
 }
 
-void three_way_handshake(int sockfd)
+void three_way_handshake(int sockfd, int client_num)
 {
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
@@ -47,6 +47,7 @@ void three_way_handshake(int sockfd)
     bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+    printf("*** Starting three way handshake *** \n\n");
     printf("[+]Data recv: %s\n", buffer);
     if (strncmp(buffer, "SYN", 3) != 0)
     {
@@ -55,7 +56,7 @@ void three_way_handshake(int sockfd)
     }
 
     bzero(buffer, BUFFER_SIZE);
-    strcpy(buffer, "SYN ACK");
+    snprintf(buffer, 13, "SYN ACK_%d", BASE_PORT + client_num + 1);
     sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
     printf("[+]Data send: %s\n", buffer);
 
@@ -68,4 +69,5 @@ void three_way_handshake(int sockfd)
         printf("ACK not received \n");
         exit(EXIT_FAILURE);
     }
+    printf("*** end of three way handshake *** \n\n");
 }

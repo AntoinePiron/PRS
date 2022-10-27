@@ -8,8 +8,9 @@
 #include "../constants.h"
 #include "client_util.h"
 
-void three_way_handshake(int sockfd, struct sockaddr_in addr)
+int three_way_handshake(int sockfd, struct sockaddr_in addr)
 {
+    printf("\n*** Starting three way handshake *** \n\n");
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
 
@@ -27,9 +28,17 @@ void three_way_handshake(int sockfd, struct sockaddr_in addr)
         printf("SYN ACK not received \n");
         exit(EXIT_FAILURE);
     }
+    // get port number by splitting the string with _
+    char *port = strtok(buffer, "_");
+    port = strtok(NULL, "_");
+    int new_port = atoi(port);
 
     bzero(buffer, BUFFER_SIZE);
     strcpy(buffer, "ACK");
     sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, sizeof(addr));
     printf("[+]Data send: %s\n", buffer);
+
+    printf("\n*** end of three way handshake ***\n\n");
+
+    return new_port;
 }

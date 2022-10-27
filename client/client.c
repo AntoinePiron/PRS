@@ -22,7 +22,10 @@ int main(int argc, char **argv)
   addr.sin_port = htons(BASE_PORT);
   addr.sin_addr.s_addr = inet_addr(ip);
 
-  three_way_handshake(sockfd, addr);
+  int new_port;
 
+  new_port = three_way_handshake(sockfd, addr);
+
+  printf("New port: %d\n", new_port);
   return 0;
 }
