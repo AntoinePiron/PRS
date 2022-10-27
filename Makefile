@@ -1,25 +1,27 @@
 CFLAGS = -g -Wall -DDEBUG 
 LDFLAGS = -g -Wall -DDEBUG
+CLIENT_DIR = client/
+SERVER_DIR = server/
 
 all: server client
 
-server: server.o server_util.o
-	gcc ${LDFLAGS} server.o server_util.o -o server
+server: ${SERVER_DIR}server.o ${SERVER_DIR}server_util.o
+	gcc ${LDFLAGS} ${SERVER_DIR}server.o ${SERVER_DIR}server_util.o -o s
 
-server.o: server.c server_util.h
-	gcc ${CFLAGS} -c server.c -o server.o
+${SERVER_DIR}server.o: ${SERVER_DIR}server.c ${SERVER_DIR}server_util.h
+	gcc ${CFLAGS} -c ${SERVER_DIR}server.c -o ${SERVER_DIR}server.o
 
-server_util.o : server_util.c
-	gcc ${CFLAGS} -c server_util.c -o server_util.o
+${SERVER_DIR}server_util.o : ${SERVER_DIR}server_util.c
+	gcc ${CFLAGS} -c ${SERVER_DIR}server_util.c -o ${SERVER_DIR}server_util.o
 
-client: client.o client_util.o
-	gcc ${LDFLAGS} client.o client_util.o -o client
+client: ${CLIENT_DIR}client.o ${CLIENT_DIR}client_util.o
+	gcc ${LDFLAGS} ${CLIENT_DIR}client.o ${CLIENT_DIR}client_util.o -o c
 
-client.o: client.c client_util.h
-	gcc ${CFLAGS} -c client.c -o client.o
+${CLIENT_DIR}client.o: ${CLIENT_DIR}client.c ${CLIENT_DIR}client_util.h
+	gcc ${CFLAGS} -c ${CLIENT_DIR}client.c -o ${CLIENT_DIR}client.o
 
-client_util.o : client_util.c
-	gcc ${CFLAGS} -c client_util.c -o client_util.o
+${CLIENT_DIR}client_util.o : ${CLIENT_DIR}client_util.c
+	gcc ${CFLAGS} -c ${CLIENT_DIR}client_util.c -o ${CLIENT_DIR}client_util.o
 
 clean: 
-	\rm -rf *.o *~ server client
+	\rm -rf ${SERVER_DIR}*.o ${CLIENT_DIR}*.o *~ c s

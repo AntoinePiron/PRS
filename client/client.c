@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "constants.h"
+#include "../constants.h"
 #include "client_util.h"
 
 int main(int argc, char **argv)

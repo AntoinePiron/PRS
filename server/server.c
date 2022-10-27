@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "constants.h"
+#include "../constants.h"
 #include "server_util.h"
 
 int main(int argc, char **argv)

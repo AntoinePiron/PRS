@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "constants.h"
+#include "../constants.h"
 #include "client_util.h"
 
 void three_way_handshake(int sockfd, struct sockaddr_in addr)

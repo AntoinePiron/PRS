@@ -63,6 +63,6 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows
 
 #Project Specific
-*.o
-client
-server
+**/*.o
+c
+s

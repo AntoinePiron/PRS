@@ -1,5 +1,5 @@
 #include "server_util.h"
-#include "constants.h"
+#include "../constants.h"
 
 #include <stdio.h>
 #include <stdlib.h>
