@@ -18,7 +18,7 @@
 int main(int argc, char **argv)
 {
 
-  int number_clients, prot_sock, comm_sock, maxfdp1, nready;
+  int number_clients, prot_sock, comm_sock, maxfdp1;
   fd_set rset;
 
   number_clients = 0;
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     FD_SET(comm_sock, &rset);
     printf("Waiting for connection...\n");
 
-    nready = select(maxfdp1, &rset, NULL, NULL, NULL);
+    select(maxfdp1, &rset, NULL, NULL, NULL);
 
     // if tcp socket is readable then handle
     // it by accepting the connection

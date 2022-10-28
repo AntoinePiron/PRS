@@ -90,11 +90,11 @@ void handle_file(int sockfd)
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
     struct sockaddr_in client_addr;
-    int fd;
+    FILE *fd;
     long int n;
-    off_t m, count = 0;
+    off_t m;
 
-    bzero(&buffer, BUFFER_SIZE);
+    bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("\t[+]Data recv: %s\n", buffer);
@@ -103,7 +103,7 @@ void handle_file(int sockfd)
     char *complete_filename = malloc(strlen(filename) + 7);
     sprintf(complete_filename, "server/%s", filename);
 
-    if ((fd = open(complete_filename, 0600)) == -1)
+    if ((fd = fopen(complete_filename, "r")) == NULL)
     {
         perror("\t[-]Open fail");
         exit(EXIT_FAILURE);
@@ -112,26 +112,26 @@ void handle_file(int sockfd)
     int segment = 0;
     do
     {
-        bzero(&buffer, BUFFER_SIZE);
+        bzero(buffer, BUFFER_SIZE);
         segment++;
-        n = read(fd, buffer, BUFFER_SIZE - 6);
-        // add segment number at the end of the buffer
-        sprintf(buffer + strlen(buffer), "%06d", segment);
+        sprintf(buffer, "%06d", segment);
+        n = fread(buffer + 6, 1, BUFFER_SIZE - 6, fd);
 
         if (n == -1)
         {
             perror("read fails");
             exit(EXIT_FAILURE);
         }
-        m = (sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        if (n == 0)
+            break;
+        m = sendto(sockfd, buffer, n + 6, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         if (m == -1)
         {
             perror("send error");
             exit(EXIT_FAILURE);
         }
-        count += m;
-        printf("\t[+]Data send\n");
+        printf("\t[+]bytes send %lld\n", m);
     } while (n);
-
+    fclose(fd);
     exit(0);
 }

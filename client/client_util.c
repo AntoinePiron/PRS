@@ -49,42 +49,40 @@ int three_way_handshake(int sockfd, struct sockaddr_in addr)
 void ask_file(int sockfd, struct sockaddr_in addr)
 {
     char buffer[BUFFER_SIZE];
-    char data_buffer[BUFFER_SIZE - 6];
     socklen_t addr_size;
-    int fd;
+    FILE *fd;
     long int n;
-    off_t count = 0;
+    off_t m;
 
-    bzero(&buffer, BUFFER_SIZE);
+    bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(addr);
     strcpy(buffer, "fichier.jpg");
     sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, sizeof(addr));
     printf("[+]Data send: %s\n", buffer);
     char *filename = "client/fichier.jpg";
 
-    if ((fd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0600)) == -1)
+    if ((fd = fopen(filename, "w")) == NULL)
     {
-        perror("open fail");
+        perror("fopen");
         exit(EXIT_FAILURE);
     }
-
     do
     {
-        bzero(&buffer, BUFFER_SIZE);
-        n = recvfrom(sockfd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
-        printf("%lld of data received \n", n);
+        bzero(buffer, BUFFER_SIZE);
+        n = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
         // get segment number by getting last 6 characters from the buffer
-        char *segment = buffer + strlen(buffer) - 6;
+        char segment[7];
+        bzero(segment, 7);
+        memcpy(segment, buffer, 6);
         printf("[+]Segment number: %s \n", segment);
-        // remove 6 last characters from the buffer
-        buffer[strlen(buffer) - 7] = '\0';
-
         if (n == -1)
         {
             perror("read fails");
             exit(EXIT_FAILURE);
         }
-        count += n;
-        write(fd, buffer, sizeof(buffer));
-    } while (n);
+        m = fwrite(buffer + 6, 1, n - 6, fd);
+        printf("[+]%lld bytes written to file \n", m);
+    } while (n == BUFFER_SIZE);
+
+    fclose(fd);
 }
