@@ -49,6 +49,7 @@ int three_way_handshake(int sockfd, struct sockaddr_in addr)
 void ask_file(int sockfd, struct sockaddr_in addr)
 {
     char buffer[BUFFER_SIZE];
+    char data_buffer[BUFFER_SIZE - 6];
     socklen_t addr_size;
     int fd;
     long int n;
@@ -67,11 +68,13 @@ void ask_file(int sockfd, struct sockaddr_in addr)
         exit(EXIT_FAILURE);
     }
 
-    bzero(&buffer, BUFFER_SIZE);
-    n = recvfrom(sockfd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
-    while (n)
+    do
     {
+        bzero(&buffer, BUFFER_SIZE);
+        n = recvfrom(sockfd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
         printf("%lld of data received \n", n);
+        printf("[+]Data recv: %s \n", buffer);
+
         if (n == -1)
         {
             perror("read fails");
@@ -79,7 +82,5 @@ void ask_file(int sockfd, struct sockaddr_in addr)
         }
         count += n;
         write(fd, buffer, n);
-        bzero(&buffer, BUFFER_SIZE);
-        n = recvfrom(sockfd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
-    }
+    } while (n);
 }
