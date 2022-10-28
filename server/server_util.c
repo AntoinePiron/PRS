@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+// File function and bzero
+#include <fcntl.h>
+#include <unistd.h>
 
 int socket_creation(int port, char *adress)
 {
@@ -87,9 +90,20 @@ void handle_file(int sockfd)
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
     struct sockaddr_in client_addr;
+    int fd;
 
     bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("\t[+]Data recv: %s\n", buffer);
+    char *filename = strtok(buffer, " ");
+    printf("\t[+]File name: %s\n", filename);
+    char *complete_filename = malloc(strlen(filename) + 7);
+    sprintf(complete_filename, "server/%s", filename);
+
+    if ((fd = open(complete_filename, 0600)) == -1)
+    {
+        perror("\t[-]Open fail");
+        exit(EXIT_FAILURE);
+    }
 }

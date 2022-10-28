@@ -11,6 +11,10 @@
 #include "../constants.h"
 #include "server_util.h"
 
+/* Commande pou génerer un fichier de test
+ * dd if=/dev/urandom of=fichier count=8
+ */
+
 int main(int argc, char **argv)
 {
 
