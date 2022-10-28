@@ -73,7 +73,11 @@ void ask_file(int sockfd, struct sockaddr_in addr)
         bzero(&buffer, BUFFER_SIZE);
         n = recvfrom(sockfd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
         printf("%lld of data received \n", n);
-        printf("[+]Data recv: %s \n", buffer);
+        // get segment number by getting last 6 characters from the buffer
+        char *segment = buffer + strlen(buffer) - 6;
+        printf("[+]Segment number: %s \n", segment);
+        // remove 6 last characters from the buffer
+        buffer[strlen(buffer) - 7] = '\0';
 
         if (n == -1)
         {
@@ -81,6 +85,6 @@ void ask_file(int sockfd, struct sockaddr_in addr)
             exit(EXIT_FAILURE);
         }
         count += n;
-        write(fd, buffer, n);
+        write(fd, buffer, sizeof(buffer));
     } while (n);
 }

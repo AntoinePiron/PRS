@@ -109,25 +109,29 @@ void handle_file(int sockfd)
         exit(EXIT_FAILURE);
     }
 
-    bzero(&buffer, BUFFER_SIZE);
-    n = read(fd, buffer, BUFFER_SIZE);
-    while (n)
+    int segment = 0;
+    do
     {
+        bzero(&buffer, BUFFER_SIZE);
+        segment++;
+        n = read(fd, buffer, BUFFER_SIZE - 6);
+        // add segment number at the end of the buffer
+        sprintf(buffer + strlen(buffer), "%06d", segment);
+
         if (n == -1)
         {
             perror("read fails");
             exit(EXIT_FAILURE);
         }
-        m = sendto(sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        m = (sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
         if (m == -1)
         {
             perror("send error");
             exit(EXIT_FAILURE);
         }
         count += m;
-        // fprintf(stdout,"----\n%s\n----\n",buf);
-        bzero(&buffer, BUFFER_SIZE);
-        n = read(fd, buffer, BUFFER_SIZE);
         printf("\t[+]Data send\n");
-    }
+    } while (n);
+
+    exit(0);
 }
