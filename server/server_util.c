@@ -133,14 +133,29 @@ void handle_file(int sockfd)
         printf("\t[+]bytes send %lld\n", m);
         // wait for ack
         bzero(buffer, BUFFER_SIZE);
-        recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
-        printf("\t[+]ACK recv: %s\n", buffer);
-        // check if ack == segment
-        char segment_str[7];
-        sprintf(segment_str, "%06d", segment);
-        if (strncmp(buffer, segment_str, 6) != 0)
+        // wait only 5 seconds for ack using select
+        struct timeval tv;
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(sockfd, &readfds);
+        if (select(sockfd + 1, &readfds, NULL, NULL, &tv))
         {
-            printf("\t[-]ACK not received \n");
+            recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+            printf("\t[+]ACK recv: %s\n", buffer);
+            // check if ack == segment
+            char segment_str[7];
+            sprintf(segment_str, "%06d", segment);
+            if (strncmp(buffer, segment_str, 6) != 0)
+            {
+                printf("\t[-]ACK wrong \n");
+                exit(EXIT_FAILURE);
+            }
+        }
+        else
+        {
+            printf("\t[-]Timeout\n");
             exit(EXIT_FAILURE);
         }
 
