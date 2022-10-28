@@ -124,39 +124,42 @@ void handle_file(int sockfd)
         }
         if (n == 0)
             break;
-        m = sendto(sockfd, buffer, n + 6, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
-        if (m == -1)
-        {
-            perror("send error");
-            exit(EXIT_FAILURE);
-        }
-        printf("\t[+]bytes send %lld\n", m);
-        // wait for ack
-        bzero(buffer, BUFFER_SIZE);
         // wait only 5 seconds for ack using select
         struct timeval tv;
         tv.tv_sec = 2;
         tv.tv_usec = 0;
         fd_set readfds;
         FD_ZERO(&readfds);
-        FD_SET(sockfd, &readfds);
-        if (select(sockfd + 1, &readfds, NULL, NULL, &tv))
+        while (1)
         {
-            recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
-            printf("\t[+]ACK recv: %s\n", buffer);
-            // check if ack == segment
-            char segment_str[7];
-            sprintf(segment_str, "%06d", segment);
-            if (strncmp(buffer, segment_str, 6) != 0)
+            m = sendto(sockfd, buffer, n + 6, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+            if (m == -1)
             {
-                printf("\t[-]ACK wrong \n");
+                perror("send error");
                 exit(EXIT_FAILURE);
             }
-        }
-        else
-        {
-            printf("\t[-]Timeout\n");
-            exit(EXIT_FAILURE);
+            printf("\t[+]bytes send %lld\n", m);
+            // wait for ack
+            bzero(buffer, BUFFER_SIZE);
+            FD_SET(sockfd, &readfds);
+            if (select(sockfd + 1, &readfds, NULL, NULL, &tv))
+            {
+                recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+                printf("\t[+]ACK recv: %s\n", buffer);
+                // check if ack == segment
+                char segment_str[7];
+                sprintf(segment_str, "%06d", segment);
+                if (strncmp(buffer, segment_str, 6) != 0)
+                {
+                    printf("\t[-]ACK wrong \n");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+            else
+            {
+                printf("\t[-]Timeout, retry\n");
+            }
         }
 
     } while (n);
