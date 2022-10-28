@@ -82,6 +82,10 @@ void ask_file(int sockfd, struct sockaddr_in addr)
         }
         m = fwrite(buffer + 6, 1, n - 6, fd);
         printf("[+]%lld bytes written to file \n", m);
+        // ACK segment
+        sendto(sockfd, segment, 6, 0, (struct sockaddr *)&addr, sizeof(addr));
+        printf("[+]ACK sent for segment %s \n", segment);
+
     } while (n == BUFFER_SIZE);
 
     fclose(fd);

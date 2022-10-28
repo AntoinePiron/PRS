@@ -131,6 +131,19 @@ void handle_file(int sockfd)
             exit(EXIT_FAILURE);
         }
         printf("\t[+]bytes send %lld\n", m);
+        // wait for ack
+        bzero(buffer, BUFFER_SIZE);
+        recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+        printf("\t[+]ACK recv: %s\n", buffer);
+        // check if ack == segment
+        char segment_str[7];
+        sprintf(segment_str, "%06d", segment);
+        if (strncmp(buffer, segment_str, 6) != 0)
+        {
+            printf("\t[-]ACK not received \n");
+            exit(EXIT_FAILURE);
+        }
+
     } while (n);
     fclose(fd);
     exit(0);
