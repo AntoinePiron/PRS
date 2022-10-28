@@ -82,7 +82,7 @@ int max(int a, int b)
         return b;
 }
 
-void handle_hello(int sockfd)
+void handle_file(int sockfd)
 {
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
@@ -92,9 +92,4 @@ void handle_hello(int sockfd)
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("\t[+]Data recv: %s\n", buffer);
-    if (strncmp(buffer, "HELLO", 5) != 0)
-    {
-        printf("HELLO not received \n");
-        exit(EXIT_FAILURE);
-    }
 }

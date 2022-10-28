@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     // if udp socket is readable receive the message.
     if (FD_ISSET(comm_sock, &rset))
     {
-      handle_hello(comm_sock);
+      handle_file(comm_sock);
     }
   }
   return 0;

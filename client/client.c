@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   second_addr.sin_port = htons(new_port);
   second_addr.sin_addr.s_addr = inet_addr(ip);
 
-  send_hello(new_socket, second_addr);
+  ask_file(new_socket, second_addr);
 
   return 0;
 }
