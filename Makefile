@@ -24,4 +24,4 @@ ${CLIENT_DIR}client_util.o : ${CLIENT_DIR}client_util.c
 	gcc ${CFLAGS} -c ${CLIENT_DIR}client_util.c -o ${CLIENT_DIR}client_util.o
 
 clean: 
-	\rm -rf ${SERVER_DIR}*.o ${CLIENT_DIR}*.o *~ c s
+	\rm -rf ${SERVER_DIR}*.o ${CLIENT_DIR}*.o ${CLIENT_DIR}*.jpg *~ c s

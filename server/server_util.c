@@ -49,7 +49,7 @@ void three_way_handshake(int sockfd, int client_num)
     socklen_t addr_size;
     struct sockaddr_in client_addr;
 
-    bzero(buffer, BUFFER_SIZE);
+    bzero(&buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("*** Starting three way handshake *** \n\n");
@@ -60,12 +60,12 @@ void three_way_handshake(int sockfd, int client_num)
         exit(EXIT_FAILURE);
     }
 
-    bzero(buffer, BUFFER_SIZE);
+    bzero(&buffer, BUFFER_SIZE);
     snprintf(buffer, 13, "SYN ACK_%d", COMMUNICATION_PORT);
     sendto(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
     printf("[+]Data send: %s\n", buffer);
 
-    bzero(buffer, BUFFER_SIZE);
+    bzero(&buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("[+]Data recv: %s\n", buffer);
@@ -91,8 +91,10 @@ void handle_file(int sockfd)
     socklen_t addr_size;
     struct sockaddr_in client_addr;
     int fd;
+    long int n;
+    off_t m, count = 0;
 
-    bzero(buffer, BUFFER_SIZE);
+    bzero(&buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
     printf("\t[+]Data recv: %s\n", buffer);
@@ -105,5 +107,27 @@ void handle_file(int sockfd)
     {
         perror("\t[-]Open fail");
         exit(EXIT_FAILURE);
+    }
+
+    bzero(&buffer, BUFFER_SIZE);
+    n = read(fd, buffer, BUFFER_SIZE);
+    while (n)
+    {
+        if (n == -1)
+        {
+            perror("read fails");
+            exit(EXIT_FAILURE);
+        }
+        m = sendto(sockfd, buffer, n, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+        if (m == -1)
+        {
+            perror("send error");
+            exit(EXIT_FAILURE);
+        }
+        count += m;
+        // fprintf(stdout,"----\n%s\n----\n",buf);
+        bzero(&buffer, BUFFER_SIZE);
+        n = read(fd, buffer, BUFFER_SIZE);
+        printf("\t[+]Data send\n");
     }
 }
