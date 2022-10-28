@@ -91,7 +91,7 @@ void handle_hello(int sockfd)
     bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(client_addr);
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
-    printf("[+]Data recv: %s\n", buffer);
+    printf("\t[+]Data recv: %s\n", buffer);
     if (strncmp(buffer, "HELLO", 5) != 0)
     {
         printf("HELLO not received \n");

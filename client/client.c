@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 
   int new_port;
   new_port = three_way_handshake(sockfd, addr);
+  close(sockfd);
 
   int new_socket = socket(AF_INET, SOCK_DGRAM, 0);
   struct sockaddr_in second_addr;
