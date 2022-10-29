@@ -32,21 +32,18 @@ int main(int argc, char **argv)
 
   while (1)
   {
-    // set listenfd and udpfd in readset
     FD_SET(prot_sock, &rset);
     FD_SET(comm_sock, &rset);
     printf("Waiting for connection...\n");
 
     select(maxfdp1, &rset, NULL, NULL, NULL);
 
-    // if tcp socket is readable then handle
-    // it by accepting the connection
     if (FD_ISSET(prot_sock, &rset))
     {
       three_way_handshake(prot_sock, number_clients);
       number_clients++;
     }
-    // if udp socket is readable receive the message.
+
     if (FD_ISSET(comm_sock, &rset))
     {
       handle_file(comm_sock);
