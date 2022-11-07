@@ -73,9 +73,8 @@ void ask_file(int sockfd, struct sockaddr_in addr)
         {
             bzero(buffer, BUFFER_SIZE);
             n = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&addr, &addr_size);
-            // get segment number by getting last 6 characters from the buffer
-            bzero(segment, 7);
-            memcpy(segment, buffer, 6);
+            bzero(segment, (SEGMENT_NUMBER_LENGTH + 1));
+            memcpy(segment, buffer, SEGMENT_NUMBER_LENGTH);
         } while (strlen(segment) == 0);
 
         printf("[+]Segment number: %s \n", segment);
@@ -84,13 +83,13 @@ void ask_file(int sockfd, struct sockaddr_in addr)
             perror("read fails");
             exit(EXIT_FAILURE);
         }
-        m = fwrite(buffer + 6, 1, n - 6, fd);
+        m = fwrite(buffer + SEGMENT_NUMBER_LENGTH, 1, n - SEGMENT_NUMBER_LENGTH, fd);
         printf("[+]%lld bytes written to file \n", m);
         // ACK segment
-        sendto(sockfd, segment, 6, 0, (struct sockaddr *)&addr, sizeof(addr));
+        sendto(sockfd, segment, SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&addr, sizeof(addr));
         printf("[+]ACK sent for segment %s \n", segment);
         // Simulate packet loss
-        sleep(rand() % 5);
+        // sleep(rand() % 5);
 
     } while (n == BUFFER_SIZE);
 

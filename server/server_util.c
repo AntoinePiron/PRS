@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 // File function and bzero
 #include <fcntl.h>
 #include <unistd.h>
@@ -115,7 +116,7 @@ void handle_file(int sockfd)
         bzero(buffer, BUFFER_SIZE);
         segment++;
         sprintf(buffer, "%06d", segment);
-        n = fread(buffer + 6, 1, BUFFER_SIZE - 6, fd);
+        n = fread(buffer + SEGMENT_NUMBER_LENGTH, 1, BUFFER_SIZE - SEGMENT_NUMBER_LENGTH, fd);
 
         if (n == -1)
         {
@@ -132,7 +133,10 @@ void handle_file(int sockfd)
         FD_ZERO(&readfds);
         while (1)
         {
-            m = sendto(sockfd, buffer, n + 6, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+            // get time
+            struct timeval start, end;
+            gettimeofday(&start, NULL);
+            m = sendto(sockfd, buffer, n + SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
             if (m == -1)
             {
                 perror("send error");
@@ -145,11 +149,13 @@ void handle_file(int sockfd)
             if (select(sockfd + 1, &readfds, NULL, NULL, &tv))
             {
                 recvfrom(sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
+                gettimeofday(&end, NULL);
                 printf("\t[+]ACK recv: %s\n", buffer);
+                printf("\t[+]RTT: %f\n", (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0);
                 // check if ack == segment
-                char segment_str[7];
+                char segment_str[SEGMENT_NUMBER_LENGTH + 1];
                 sprintf(segment_str, "%06d", segment);
-                if (strncmp(buffer, segment_str, 6) != 0)
+                if (strncmp(buffer, segment_str, SEGMENT_NUMBER_LENGTH) != 0)
                 {
                     printf("\t[-]ACK wrong \n");
                     exit(EXIT_FAILURE);
