@@ -25,3 +25,6 @@ ${CLIENT_DIR}client_util.o : ${CLIENT_DIR}client_util.c
 
 clean: 
 	\rm -rf ${SERVER_DIR}*.o ${CLIENT_DIR}*.o ${CLIENT_DIR}*.jpg *~ c s
+
+cmp:
+	cmp ${CLIENT_DIR}fichier.jpg ${SERVER_DIR}fichier.jpg
