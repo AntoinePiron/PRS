@@ -111,6 +111,7 @@ void handle_file(int sockfd)
     }
 
     int segment = 0;
+    int window_size = 2;
     do
     {
         bzero(buffer, BUFFER_SIZE);
@@ -136,7 +137,8 @@ void handle_file(int sockfd)
             // get time
             struct timeval start, end;
             gettimeofday(&start, NULL);
-            m = sendto(sockfd, buffer, n + SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
+
+                        m = sendto(sockfd, buffer, n + SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
             if (m == -1)
             {
                 perror("send error");
