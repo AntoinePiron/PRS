@@ -10,6 +10,7 @@
 
 #include "../constants.h"
 #include "server_util.h"
+#include "file_transmission.h"
 
 /* Commande pou génerer un fichier de test
  * dd if=/dev/urandom of=fichier count=8
