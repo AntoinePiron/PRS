@@ -46,18 +46,22 @@ void *handle_file_ack(void *arg)
     {
         bzero(recepBuffer, BUFFER_SIZE);
         recvfrom(global_sockfd, recepBuffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &addr_size);
-        printf("\t[+]ACK recv: %s\n", recepBuffer);
         char segment_str[SEGMENT_NUMBER_LENGTH + 1];
-        sprintf(segment_str, "%06d", last_segment);
-        if (strncmp(recepBuffer, segment_str, SEGMENT_NUMBER_LENGTH) != 0)
+        char *segment_recv = strtok(recepBuffer, "_");
+        int recep_segment = atoi(segment_recv);
+        printf("\t[+]ACK recv: %d\n", recep_segment);
+        if (recep_segment < last_segment + 1)
         {
-            printf("\t[-]ACK wrong \n");
-            // segment -= window_size;
-            continue;
+            printf("\t[+]ACK OK\n");
+            pthread_mutex_lock(&mutex);
+            window_size += 2;
+            pthread_mutex_unlock(&mutex);
         }
-        pthread_mutex_lock(&mutex);
-        window_size += 2;
-        pthread_mutex_unlock(&mutex);
+        else
+        {
+            printf("\t[+]ACK ERROR\n");
+        }
+        printf("\tWindow size: %d\n", window_size);
     }
     return NULL;
 }
@@ -86,9 +90,10 @@ void handle_file(int sockfd)
     do
     {
 
-        while (window_size > 0)
+        while (1)
         {
-            bzero(buffer, BUFFER_SIZE);
+            if (window_size != 0)
+                bzero(buffer, BUFFER_SIZE);
             sprintf(buffer, "%06d", segment);
             fseek(fd, (segment - 1) * (BUFFER_SIZE - SEGMENT_NUMBER_LENGTH), SEEK_SET);
             n = fread(buffer + SEGMENT_NUMBER_LENGTH, 1, BUFFER_SIZE - SEGMENT_NUMBER_LENGTH, fd);
@@ -101,6 +106,11 @@ void handle_file(int sockfd)
             if (n == 0)
                 break;
 
+            last_segment = segment;
+            while (window_size == 0)
+            {
+                continue;
+            }
             m = sendto(sockfd, buffer, n + SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
             if (m == -1)
             {
