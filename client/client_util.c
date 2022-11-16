@@ -57,6 +57,7 @@ void ask_file(int sockfd, struct sockaddr_in addr)
     pthread_mutexattr_setpshared(&attrmutex, PTHREAD_PROCESS_SHARED);
 
     /* Allocate memory to pmutex here. */
+    pmutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
 
     /* Initialise mutex. */
     pthread_mutex_init(pmutex, &attrmutex);
