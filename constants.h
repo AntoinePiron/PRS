@@ -1,5 +1,5 @@
 #define BUFFER_SIZE 1024
 #define BASE_PORT 5000
 #define COMMUNICATION_PORT 6000
-#define IP "127.0.0.1"
+#define IP "0.0.0.0"
 #define SEGMENT_NUMBER_LENGTH 6

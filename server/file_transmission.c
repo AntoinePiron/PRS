@@ -50,7 +50,7 @@ void *handle_file_ack(void *arg)
         char *segment_recv = strtok(recepBuffer, "_");
         int recep_segment = atoi(segment_recv);
         printf("\t[+]ACK recv: %d\n", recep_segment);
-        if (recep_segment < last_segment + 1)
+        if (recep_segment <= last_segment)
         {
             printf("\t[+]ACK OK\n");
             pthread_mutex_lock(&mutex);
@@ -90,10 +90,9 @@ void handle_file(int sockfd)
     do
     {
 
-        while (1)
+        while (window_size > 0)
         {
-            if (window_size != 0)
-                bzero(buffer, BUFFER_SIZE);
+            bzero(buffer, BUFFER_SIZE);
             sprintf(buffer, "%06d", segment);
             fseek(fd, (segment - 1) * (BUFFER_SIZE - SEGMENT_NUMBER_LENGTH), SEEK_SET);
             n = fread(buffer + SEGMENT_NUMBER_LENGTH, 1, BUFFER_SIZE - SEGMENT_NUMBER_LENGTH, fd);
@@ -107,10 +106,7 @@ void handle_file(int sockfd)
                 break;
 
             last_segment = segment;
-            while (window_size == 0)
-            {
-                continue;
-            }
+            printf("\t[+]Segment %d sent\n", segment);
             m = sendto(sockfd, buffer, n + SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
             if (m == -1)
             {
@@ -123,7 +119,6 @@ void handle_file(int sockfd)
             window_size--;
             pthread_mutex_unlock(&mutex);
         }
-        last_segment = segment - 1;
     } while (n == BUFFER_SIZE - SEGMENT_NUMBER_LENGTH);
     fclose(fd);
     exit(0);
