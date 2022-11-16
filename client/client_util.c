@@ -12,8 +12,15 @@
 #include "../constants.h"
 #include "client_util.h"
 
-pthread_mutex_t *pmutex = NULL;
-pthread_mutexattr_t attrmutex;
+socklen_t addr_size;
+FILE *fd;
+long int n;
+off_t m;
+char segment[7];
+int global_sockfd;
+struct sockaddr_in global_addr;
+pthread_t thread_id;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int three_way_handshake(int sockfd, struct sockaddr_in addr)
 {
@@ -50,24 +57,34 @@ int three_way_handshake(int sockfd, struct sockaddr_in addr)
     return new_port;
 }
 
+void *write_file(void *arg)
+{
+    // get buffer from arg
+    char *buffer = (char *)arg;
+    printf("[+]Segment number: %s \n", segment);
+    if (n == -1)
+    {
+        perror("read fails");
+        exit(EXIT_FAILURE);
+    }
+    int segmentInt = atoi(segment);
+    // lock mutex
+    pthread_mutex_lock(&mutex);
+    fseek(fd, (segmentInt - 1) * (BUFFER_SIZE - SEGMENT_NUMBER_LENGTH), SEEK_SET);
+    m = fwrite(buffer + SEGMENT_NUMBER_LENGTH, 1, n - SEGMENT_NUMBER_LENGTH, fd);
+    // unlock mutex
+    pthread_mutex_unlock(&mutex);
+    printf("[+]%lld bytes written to file \n", m);
+    // ACK segment
+    sendto(global_sockfd, segment, SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&global_addr, sizeof(global_addr));
+    printf("[+]ACK sent for segment %s \n", segment);
+}
+
 void ask_file(int sockfd, struct sockaddr_in addr)
 {
-    /* Initialise attribute to mutex. */
-    pthread_mutexattr_init(&attrmutex);
-    pthread_mutexattr_setpshared(&attrmutex, PTHREAD_PROCESS_SHARED);
-
-    /* Allocate memory to pmutex here. */
-    pmutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-
-    /* Initialise mutex. */
-    pthread_mutex_init(pmutex, &attrmutex);
-
     char buffer[BUFFER_SIZE];
-    socklen_t addr_size;
-    FILE *fd;
-    long int n;
-    off_t m;
-    char segment[7];
+    global_sockfd = sockfd;
+    global_addr = addr;
 
     bzero(buffer, BUFFER_SIZE);
     addr_size = sizeof(addr);
@@ -91,28 +108,8 @@ void ask_file(int sockfd, struct sockaddr_in addr)
             memcpy(segment, buffer, SEGMENT_NUMBER_LENGTH);
         } while (strlen(segment) == 0);
 
-        int pid = fork();
-        if (pid == 0)
-        {
-            printf("[+]Segment number: %s \n", segment);
-            if (n == -1)
-            {
-                perror("read fails");
-                exit(EXIT_FAILURE);
-            }
-            int segmentInt = atoi(segment);
-            pthread_mutex_lock(&attrmutex);
-            fseek(fd, (segmentInt - 1) * (BUFFER_SIZE - SEGMENT_NUMBER_LENGTH), SEEK_SET);
-            m = fwrite(buffer + SEGMENT_NUMBER_LENGTH, 1, n - SEGMENT_NUMBER_LENGTH, fd);
-            pthread_mutex_unlock(&attrmutex);
-            printf("[+]%lld bytes written to file \n", m);
-            // ACK segment
-            sendto(sockfd, segment, SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&addr, sizeof(addr));
-            printf("[+]ACK sent for segment %s \n", segment);
-            // Simulate packet loss
-            // sleep(rand() % 5);
-            exit(EXIT_SUCCESS);
-        }
+        // create thread to write file with buffer
+        pthread_create(&thread_id, NULL, write_file, (void *)buffer);
 
     } while (n == BUFFER_SIZE);
 
