@@ -7,9 +7,13 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "../constants.h"
 #include "client_util.h"
+
+pthread_mutex_t *pmutex = NULL;
+pthread_mutexattr_t attrmutex;
 
 int three_way_handshake(int sockfd, struct sockaddr_in addr)
 {
@@ -48,6 +52,15 @@ int three_way_handshake(int sockfd, struct sockaddr_in addr)
 
 void ask_file(int sockfd, struct sockaddr_in addr)
 {
+    /* Initialise attribute to mutex. */
+    pthread_mutexattr_init(&attrmutex);
+    pthread_mutexattr_setpshared(&attrmutex, PTHREAD_PROCESS_SHARED);
+
+    /* Allocate memory to pmutex here. */
+
+    /* Initialise mutex. */
+    pthread_mutex_init(pmutex, &attrmutex);
+
     char buffer[BUFFER_SIZE];
     socklen_t addr_size;
     FILE *fd;
@@ -86,8 +99,11 @@ void ask_file(int sockfd, struct sockaddr_in addr)
                 perror("read fails");
                 exit(EXIT_FAILURE);
             }
-
+            int segmentInt = atoi(segment);
+            pthread_mutex_lock(&attrmutex);
+            fseek(fd, (segmentInt - 1) * (BUFFER_SIZE - SEGMENT_NUMBER_LENGTH), SEEK_SET);
             m = fwrite(buffer + SEGMENT_NUMBER_LENGTH, 1, n - SEGMENT_NUMBER_LENGTH, fd);
+            pthread_mutex_unlock(&attrmutex);
             printf("[+]%lld bytes written to file \n", m);
             // ACK segment
             sendto(sockfd, segment, SEGMENT_NUMBER_LENGTH, 0, (struct sockaddr *)&addr, sizeof(addr));
